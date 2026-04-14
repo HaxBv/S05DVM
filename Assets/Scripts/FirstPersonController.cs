@@ -1,3 +1,4 @@
+using System;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -8,7 +9,7 @@ public class FirstPersonController : MonoBehaviour
     private CharacterController controller;
     public CinemachineCamera characterCamera;
     public Animator animator;
-
+    public bool CanPlay;
 
 
     public float moveSpeed = 5f;
@@ -30,10 +31,18 @@ public class FirstPersonController : MonoBehaviour
     {
         inputs = new();
         controller = GetComponent<CharacterController>();
-
+        
+        //Cursor.visible = false;
+        //Cursor.lockState = CursorLockMode.Locked;
+    }
+  
+    private void Actualizar()
+    {
+        CanPlay = true;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
+
     private void OnEnable()
     {
         inputs.Enable();
@@ -51,8 +60,9 @@ public class FirstPersonController : MonoBehaviour
     }
     void Start()
     {
-
+        GameManager.instance.OnPlay += Actualizar;
     }
+
     void Update()
     {
 
@@ -62,82 +72,99 @@ public class FirstPersonController : MonoBehaviour
 
     public void OnMove()
     {
-        Vector3 cameraForwardDir = characterCamera.transform.forward;
-        cameraForwardDir.y = 0;
-        cameraForwardDir.Normalize();
-
-
-      
-       Quaternion targetQuaternion = Quaternion.LookRotation(cameraForwardDir);
-       transform.rotation = targetQuaternion;
-       /*transform.rotation = Quaternion.Slerp(
-           transform.rotation,
-           targetQuaternion,
-           rotationSpeed * Time.deltaTime);*/
-
-
-       
-
-        Vector3 moveDir = (cameraForwardDir * moveInput.y + transform.right * moveInput.x) * moveSpeed;
-
-        float magnitud = Mathf.Abs(controller.velocity.magnitude);
-        print(magnitud);
-        animator.SetFloat("Speed", magnitud);
-
-
-
-
-
-        verticalVelocity += Physics.gravity.y * Time.deltaTime;
-
-        if (controller.isGrounded && verticalVelocity < 0)
-            verticalVelocity = -2f;
-
-        moveDir.y = verticalVelocity;
-        animator.SetBool("Grounded", controller.isGrounded);
-
-        if (IsDashing)
+        if(CanPlay ==true)
         {
-            //->convertir el dash a un barrido por el piso! dash con gravedad integrada omaegoto!
-            moveDir = transform.forward * dashForce * (dashTimer / dashDuration);
 
-            dashTimer -= Time.deltaTime;
+            Vector3 cameraForwardDir = characterCamera.transform.forward;
+            cameraForwardDir.y = 0;
+            cameraForwardDir.Normalize();
 
-            if (dashTimer <= 0)
-                IsDashing = false;
+
+
+            Quaternion targetQuaternion = Quaternion.LookRotation(cameraForwardDir);
+            transform.rotation = targetQuaternion;
+            /*transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetQuaternion,
+                rotationSpeed * Time.deltaTime);*/
+
+
+
+
+            Vector3 moveDir = (cameraForwardDir * moveInput.y + transform.right * moveInput.x) * moveSpeed;
+
+            float magnitud = Mathf.Abs(controller.velocity.magnitude);
+            print(magnitud);
+            animator.SetFloat("Speed", magnitud);
+
+
+
+
+
+            verticalVelocity += Physics.gravity.y * Time.deltaTime;
+
+            if (controller.isGrounded && verticalVelocity < 0)
+                verticalVelocity = -2f;
+
+            moveDir.y = verticalVelocity;
+            animator.SetBool("Grounded", controller.isGrounded);
+
+            if (IsDashing)
+            {
+                //->convertir el dash a un barrido por el piso! dash con gravedad integrada omaegoto!
+                moveDir = transform.forward * dashForce * (dashTimer / dashDuration);
+
+                dashTimer -= Time.deltaTime;
+
+                if (dashTimer <= 0)
+                    IsDashing = false;
+            }
+            controller.Move(moveDir * Time.deltaTime);
         }
-        controller.Move(moveDir * Time.deltaTime);
     }
 
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (!controller.isGrounded) return;
+        if (CanPlay == true)
+        {
+            if (!controller.isGrounded) return;
 
-        animator.SetTrigger("Jump");
+            animator.SetTrigger("Jump");
 
-        verticalVelocity = jumpForce;
+            verticalVelocity = jumpForce;
+        }
     }
     public void OnSimpleMove()
     {
-        transform.Rotate(Vector3.up * moveInput.x * rotationSpeed * Time.deltaTime);
-        Vector3 moveDir = transform.forward * moveSpeed * moveInput.y;
-        controller.SimpleMove(moveDir);
+        if (CanPlay == true)
+        {
+
+            transform.Rotate(Vector3.up * moveInput.x * rotationSpeed * Time.deltaTime);
+            Vector3 moveDir = transform.forward * moveSpeed * moveInput.y;
+            controller.SimpleMove(moveDir);
+        }
     }
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-
-
-        Vector3 pushDir = (hit.transform.position - transform.position).normalized;
-
-        if (hit.rigidbody != null && hit.rigidbody.linearVelocity == Vector3.zero)
+        if (CanPlay == true)
         {
-            print(hit.gameObject.name);
-            hit.rigidbody.AddForce(pushDir * pushForce, ForceMode.Impulse);
+
+            Vector3 pushDir = (hit.transform.position - transform.position).normalized;
+
+            if (hit.rigidbody != null && hit.rigidbody.linearVelocity == Vector3.zero)
+            {
+                print(hit.gameObject.name);
+                hit.rigidbody.AddForce(pushDir * pushForce, ForceMode.Impulse);
+            }
         }
     }
     private void OnDash(InputAction.CallbackContext context)
     {
-        IsDashing = true;
-        dashTimer = dashDuration;
+        if (CanPlay == true)
+        {
+            IsDashing = true;
+            dashTimer = dashDuration;
+        }
     }
+
 }

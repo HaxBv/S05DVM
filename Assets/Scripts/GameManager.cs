@@ -5,9 +5,23 @@ using Sirenix.OdinInspector;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager instance;
     public CinemachineCamera camA;
     public CinemachineCamera camB;
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(instance);
+        }
+    }
 
+    public Action OnStart;
+    public Action OnPlay;
 
     [Button("Transition")]
     public void transition()
@@ -26,5 +40,16 @@ public class GameManager : MonoBehaviour
     public void OnCameraFinished()
     {
         Debug.Log("Camera transition finished!");
+    }
+
+    public void StartThis()
+    {
+        OnStart?.Invoke();
+    }
+    public void Play()
+    {
+
+        OnPlay?.Invoke();
+        transition();
     }
 }
