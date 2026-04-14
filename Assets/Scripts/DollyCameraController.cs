@@ -41,7 +41,10 @@ public class DollyCameraController : MonoBehaviour
     public void MovePlaceRight()
     {
         PlaceSelected++;
-
+        if (PlaceSelected > 5)
+        {
+            PlaceSelected = 1;
+        }
         switch (PlaceSelected)
         {
             case 0://nothing
@@ -77,8 +80,12 @@ public class DollyCameraController : MonoBehaviour
 
     public void MovePlaceLeft()
     {
-        if(PlaceSelected >1)
         PlaceSelected--;
+
+        if (PlaceSelected < 1)
+        {
+            PlaceSelected = 5;
+        }
         switch (PlaceSelected)
         {
             case 0://nothing
