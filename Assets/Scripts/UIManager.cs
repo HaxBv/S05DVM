@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
             Right.gameObject.SetActive(false);
             Left.gameObject.SetActive(false);
 
-        }
+        };
 
     }
 
