@@ -26,6 +26,8 @@ public class FirstPersonController : MonoBehaviour
 
     [SerializeField] private Vector2 moveInput;
 
+    public Action OnEnterRoom;
+
 
     private void Awake()
     {
@@ -53,7 +55,10 @@ public class FirstPersonController : MonoBehaviour
 
         inputs.Player.Jump.performed += OnJump;
 
-        inputs.Player.Sprint.performed += OnDash;
+        inputs.Player.Sprint.performed += ctx => moveSpeed = moveSpeed * 2;
+        inputs.Player.Sprint.canceled += ctx => moveSpeed = moveSpeed * 0.5f;
+
+        //inputs.Player.Sprint.performed += OnDash;
 
 
 
@@ -94,7 +99,7 @@ public class FirstPersonController : MonoBehaviour
             Vector3 moveDir = (cameraForwardDir * moveInput.y + transform.right * moveInput.x) * moveSpeed;
 
             float magnitud = Mathf.Abs(controller.velocity.magnitude);
-            print(magnitud);
+            //print(magnitud);
             animator.SetFloat("Speed", magnitud);
 
 
@@ -167,4 +172,21 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Camera"))
+        {
+            GameManager.instance.SecurityCameraTransition();
+            Debug.Log("Entered camera trigger!");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Camera"))
+        {
+            GameManager.instance.SecurityCameraTransition();
+            Debug.Log("Exited camera trigger!");
+        }
+    }
 }
